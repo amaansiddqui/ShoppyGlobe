@@ -1,19 +1,34 @@
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import { useSelector, useDispatch } from "react-redux";
 import CartItem from "./CartItem";
+import { selectCartItems, clearCart } from "../redux/cartSlice";
 
 export function Cart({
-  cartItems = [],
+  cartItems: propCartItems,
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
 }) {
+  const dispatch = useDispatch();
+  const reduxCartItems = useSelector(selectCartItems);
+
+  const cartItems =
+    propCartItems && propCartItems.length > 0 ? propCartItems : reduxCartItems;
+
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
 
+  const handleClearCart = () => {
+    dispatch(clearCart());
+    if (onClearCart) {
+      onClearCart();
+    }
+  };
+    // If the cart is empty, display a message and a link to browse products
   if (cartItems.length === 0) {
     return (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full" id="cart">
@@ -48,7 +63,7 @@ export function Cart({
       </section>
     );
   }
-
+  //  return the cart items and order summary if the cart is not empty
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full" id="cart">
       <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center tracking-tight">
@@ -88,10 +103,10 @@ export function Cart({
           >
             Proceed to Checkout
           </Link>
-          {onClearCart && (
+          {(onClearCart || reduxCartItems.length > 0) && (
             <button
-              className="w-full mt-3 py-2 px-4 bg-transparent hover:bg-rose-50 text-rose-600 border border-rose-200 font-semibold rounded-lg transition-colors"
-              onClick={onClearCart}
+              className="w-full mt-3 py-2 px-4 bg-transparent hover:bg-rose-50 text-rose-600 border border-rose-200 font-semibold rounded-lg transition-colors cursor-pointer"
+              onClick={handleClearCart}
             >
               Clear Cart
             </button>
@@ -102,6 +117,7 @@ export function Cart({
   );
 }
 
+//  PropTypes validation for the Cart component
 Cart.propTypes = {
   cartItems: PropTypes.arrayOf(PropTypes.object),
   onUpdateQuantity: PropTypes.func,
