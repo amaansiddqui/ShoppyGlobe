@@ -2,9 +2,9 @@
 
 ShoppyGlobe is a modern, responsive e-commerce web application built using **React**, **Vite**, **Redux Toolkit**, and **React Router**.
 
----
+---------------------------------------------------------------------------------------------------
 
-## 🚀 Features
+## Features
 
 - **State Management (Redux Toolkit)**: Centralized state management for cart items (adding, removing, quantity updating, clearing) and global product search query filter.
 - **Dynamic React Routing (`createBrowserRouter`)**: Dynamic routing with route parameters for product details (`/product/:id`), cart (`/cart`), checkout (`/checkout`), and a 404 Not Found page.
@@ -12,17 +12,17 @@ ShoppyGlobe is a modern, responsive e-commerce web application built using **Rea
 - **Performance Optimization**: Code splitting with `React.lazy` and `Suspense` for route components, along with `loading="lazy"` for images.
 - **Responsive Styling**: Mobile-first responsive design powered by Tailwind CSS.
 
-----------------
+----------------------------------------------------------------------------------------------------
 
-## 🛠️ Prerequisites
+##  Prerequisites
 
 Ensure you have the following installed on your machine:
 - **Node.js** (v18.0.0 or higher recommended)
 - **npm** (v9.0.0 or higher)
 
----
+----------------------------------------------------------------------------------------------------
 
-## 📦 Installation & Setup Instructions
+##  Installation & Setup Instructions
 
 Follow these steps to run the application locally:
 
@@ -45,9 +45,9 @@ npm run dev
 ```
 Open your browser and navigate to the URL shown in the terminal (typically `http://localhost:5173`).
 
----
+----------------------------------------------------------------------------------------------------
 
-## 🏗️ Building & Previewing for Production
+## Building & Previewing for Production
 
 ### Build for Production
 To create an optimized production build in the `dist` directory:
@@ -55,7 +55,7 @@ To create an optimized production build in the `dist` directory:
 npm run build
 ```
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 ShoppyGlobe/
@@ -70,3 +70,7 @@ ShoppyGlobe/
 ├── vite.config.js        # Vite build configuration
 └── package.json          # Node dependencies and scripts
 ```
+
+## GITHUB REPO 
+     
+    
