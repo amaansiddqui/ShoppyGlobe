@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../redux/cartSlice";
 
 export function ProductItem({ product, onAddToCart }) {
   const [added, setAdded] = useState(false);
+  const dispatch = useDispatch();
 
   if (!product) return null;
-
+    // Destructure product properties with default values
   const {
     id,
     title = "Product Title",
@@ -16,7 +19,9 @@ export function ProductItem({ product, onAddToCart }) {
     rating = 0,
   } = product;
 
+  // Handle adding the product to the cart and updating the added state for feedback
   const handleAddToCart = () => {
+    dispatch(addToCart(product));
     if (onAddToCart) {
       onAddToCart(product);
     }
@@ -24,6 +29,8 @@ export function ProductItem({ product, onAddToCart }) {
     setTimeout(() => setAdded(false), 1500);
   };
 
+
+  // return the product item card with image, title, price, rating, and add to cart button
   return (
     <div
       className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
@@ -36,6 +43,7 @@ export function ProductItem({ product, onAddToCart }) {
             alt={title}
             className="w-full h-full object-contain p-4 transition-transform duration-300 hover:scale-105"
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>
@@ -64,6 +72,7 @@ export function ProductItem({ product, onAddToCart }) {
               ? "bg-emerald-600 text-white"
               : "bg-purple-600 hover:bg-purple-700 text-white shadow-sm"
           }`}
+          // Disable the button if the product is already added to the cart
           onClick={handleAddToCart}
           aria-label={`Add ${title} to cart`}
         >
@@ -73,6 +82,8 @@ export function ProductItem({ product, onAddToCart }) {
     </div>
   );
 }
+
+// PropTypes validation for the ProductItem component
 
 ProductItem.propTypes = {
   product: PropTypes.shape({
