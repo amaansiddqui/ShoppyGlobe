@@ -6,6 +6,7 @@ export function NotFound({ errorDetails }) {
 
   const currentPath = location?.pathname || "unknown route";
 
+  // Merge default error details with any provided errorDetails prop
   const defaultDetails = {
     code: "404 - Page Not Found",
     message: "The page or resource you are looking for does not exist or has been moved.",
@@ -79,6 +80,7 @@ export function NotFound({ errorDetails }) {
   );
 }
 
+  // PropTypes validation for the NotFound component
 NotFound.propTypes = {
   errorDetails: PropTypes.shape({
     code: PropTypes.string,
