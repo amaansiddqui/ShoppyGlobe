@@ -1,24 +1,33 @@
 import PropTypes from "prop-types";
+import { useDispatch } from "react-redux";
+import { updateQuantity, removeFromCart } from "../redux/cartSlice";
 
 export function CartItem({ item, onUpdateQuantity, onRemoveItem }) {
+  const dispatch = useDispatch();
+
   if (!item) return null;
 
   const { id, title = "Item", price = 0, thumbnail = "", quantity = 1 } = item;
   const itemTotal = price * quantity;
 
   const handleDecrease = () => {
-    if (quantity > 1 && onUpdateQuantity) {
-      onUpdateQuantity(id, quantity - 1);
+    if (quantity > 1) {
+      dispatch(updateQuantity({ id, quantity: quantity - 1 }));
+      if (onUpdateQuantity) {
+        onUpdateQuantity(id, quantity - 1);
+      }
     }
   };
 
   const handleIncrease = () => {
+    dispatch(updateQuantity({ id, quantity: quantity + 1 }));
     if (onUpdateQuantity) {
       onUpdateQuantity(id, quantity + 1);
     }
   };
 
   const handleRemove = () => {
+    dispatch(removeFromCart(id));
     if (onRemoveItem) {
       onRemoveItem(id);
     }
@@ -32,7 +41,7 @@ export function CartItem({ item, onUpdateQuantity, onRemoveItem }) {
       <div className="flex items-center gap-4 w-full sm:w-auto">
         <div className="w-20 h-20 shrink-0 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-gray-100">
           {thumbnail ? (
-            <img src={thumbnail} alt={title} className="w-full h-full object-contain p-1" />
+            <img src={thumbnail} alt={title} className="w-full h-full object-contain p-1" loading="lazy" decoding="async" />
           ) : (
             <div className="text-gray-400 text-xs">No Image</div>
           )}
