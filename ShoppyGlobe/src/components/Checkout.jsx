@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import { useSelector, useDispatch } from "react-redux";
+import { selectCartItems, clearCart } from "../redux/cartSlice";
 
-export function Checkout({ cartItems = [], onClearCart }) {
+export function Checkout({ cartItems: propCartItems, onClearCart }) {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const reduxCartItems = useSelector(selectCartItems);
+
+  const cartItems =
+    propCartItems && propCartItems.length > 0 ? propCartItems : reduxCartItems;
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -33,6 +40,7 @@ export function Checkout({ cartItems = [], onClearCart }) {
 
     setTimeout(() => {
       setOrderPlaced(true);
+      dispatch(clearCart());
       if (onClearCart) {
         onClearCart();
       }
@@ -263,7 +271,7 @@ export function Checkout({ cartItems = [], onClearCart }) {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 shrink-0 bg-gray-50 rounded-lg border border-gray-100 p-1 flex items-center justify-center">
                     {item.thumbnail ? (
-                      <img src={item.thumbnail} alt={item.title} className="w-full h-full object-contain" />
+                      <img src={item.thumbnail} alt={item.title} className="w-full h-full object-contain" loading="lazy" decoding="async" />
                     ) : (
                       <span className="text-xs text-gray-400">N/A</span>
                     )}
