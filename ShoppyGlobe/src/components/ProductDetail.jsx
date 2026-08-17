@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../redux/cartSlice";
 
 export function ProductDetail({ onAddToCart }) {
   const { id } = useParams();
+  const dispatch = useDispatch();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -46,8 +49,11 @@ export function ProductDetail({ onAddToCart }) {
   }, [id]);
 
   const handleAddToCart = () => {
-    if (onAddToCart && product) {
-      onAddToCart(product);
+    if (product) {
+      dispatch(addToCart(product));
+      if (onAddToCart) {
+        onAddToCart(product);
+      }
       setAdded(true);
       setTimeout(() => setAdded(false), 1500);
     }
@@ -117,6 +123,8 @@ export function ProductDetail({ onAddToCart }) {
                 src={selectedImage}
                 alt={title}
                 className="max-h-full max-w-full object-contain"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               <span className="text-gray-400">No Image Available</span>
@@ -139,6 +147,8 @@ export function ProductDetail({ onAddToCart }) {
                     src={imgUrl}
                     alt={`${title} thumbnail ${index + 1}`}
                     className="w-full h-full object-contain"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </button>
               ))}
