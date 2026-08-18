@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectCartTotalCount } from "../redux/cartSlice";
 import { selectSearchQuery, setSearchQuery } from "../redux/searchSlice";
 
+// Header component displays the navigation bar with logo, search input, and cart icon
 export function Header({ cartCount: propCartCount }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dispatch = useDispatch();
