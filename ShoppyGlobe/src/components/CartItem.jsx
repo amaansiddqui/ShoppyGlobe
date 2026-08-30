@@ -1,9 +1,11 @@
 import PropTypes from "prop-types";
-import { useDispatch } from "react-redux";
-import { updateQuantity, removeFromCart } from "../redux/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { updateQuantity, removeFromCart, updateCartItemApi, removeCartItemApi } from "../redux/cartSlice";
+import { selectIsLoggedIn } from "../redux/authSlice";
 
 export function CartItem({ item, onUpdateQuantity, onRemoveItem }) {
   const dispatch = useDispatch();
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   if (!item) return null;
 
@@ -12,7 +14,11 @@ export function CartItem({ item, onUpdateQuantity, onRemoveItem }) {
 
   const handleDecrease = () => {
     if (quantity > 1) {
-      dispatch(updateQuantity({ id, quantity: quantity - 1 }));
+      if (isLoggedIn) {
+        dispatch(updateCartItemApi({ productId: id, quantity: quantity - 1 }));
+      } else {
+        dispatch(updateQuantity({ id, quantity: quantity - 1 }));
+      }
       if (onUpdateQuantity) {
         onUpdateQuantity(id, quantity - 1);
       }
@@ -20,14 +26,22 @@ export function CartItem({ item, onUpdateQuantity, onRemoveItem }) {
   };
 
   const handleIncrease = () => {
-    dispatch(updateQuantity({ id, quantity: quantity + 1 }));
+    if (isLoggedIn) {
+      dispatch(updateCartItemApi({ productId: id, quantity: quantity + 1 }));
+    } else {
+      dispatch(updateQuantity({ id, quantity: quantity + 1 }));
+    }
     if (onUpdateQuantity) {
       onUpdateQuantity(id, quantity + 1);
     }
   };
 
   const handleRemove = () => {
-    dispatch(removeFromCart(id));
+    if (isLoggedIn) {
+      dispatch(removeCartItemApi(id));
+    } else {
+      dispatch(removeFromCart(id));
+    }
     if (onRemoveItem) {
       onRemoveItem(id);
     }

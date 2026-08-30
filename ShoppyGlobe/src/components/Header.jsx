@@ -4,14 +4,24 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
 import { selectCartTotalCount } from "../redux/cartSlice";
+import { selectIsLoggedIn, selectAuthUser, logout } from "../redux/authSlice";
+import { useNavigate } from "react-router-dom";
 import { selectSearchQuery, setSearchQuery } from "../redux/searchSlice";
 
 // Header component displays the navigation bar with logo, search input, and cart icon
 export function Header({ cartCount: propCartCount }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const reduxCartCount = useSelector(selectCartTotalCount);
   const searchQuery = useSelector(selectSearchQuery);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+  const authUser = useSelector(selectAuthUser);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
 
   const cartCount = propCartCount !== undefined && propCartCount > 0 ? propCartCount : reduxCartCount;
 
@@ -113,6 +123,29 @@ export function Header({ cartCount: propCartCount }) {
             </span>
           </Link>
 
+          {/* Auth: Login button or user menu with logout */}
+          {isLoggedIn ? (
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline text-sm font-semibold text-gray-700">
+                👤 {authUser?.username}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-rose-600 border border-gray-200 hover:border-rose-200 rounded-lg transition-colors cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              state={{ from: "/cart" }}
+              className="px-4 py-2 text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-sm transition-colors no-underline"
+            >
+              Login
+            </Link>
+          )}
+
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -171,6 +204,26 @@ export function Header({ cartCount: propCartCount }) {
           >
             Cart
           </Link>
+          {isLoggedIn ? (
+            <button
+              onClick={() => {
+                handleLogout();
+                setMobileMenuOpen(false);
+              }}
+              className="block text-left text-rose-600 font-semibold text-base py-1 cursor-pointer"
+            >
+              Logout ({authUser?.username})
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              state={{ from: "/cart" }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-purple-600 font-semibold text-base py-1"
+            >
+              Login / Register
+            </Link>
+          )}
         </div>
       )}
     </header>
