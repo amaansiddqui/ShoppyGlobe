@@ -77,9 +77,9 @@ export function Header({ cartCount: propCartCount }) {
           <Link to="/" className="text-purple-600 font-semibold text-base transition-colors hover:text-purple-700">
             Home
           </Link>
-          <a href="/#products" className="text-gray-600 hover:text-purple-600 font-medium text-base transition-colors">
+          <Link to="/products" className="text-gray-600 hover:text-purple-600 font-medium text-base transition-colors">
             Products
-          </a>
+          </Link>
           <Link to="/cart" className="text-gray-600 hover:text-purple-600 font-medium text-base transition-colors">
             Cart
           </Link>
@@ -157,13 +157,13 @@ export function Header({ cartCount: propCartCount }) {
           >
             Home
           </Link>
-          <a
-            href="/#products"
+          <Link
+            to="/products"
             onClick={() => setMobileMenuOpen(false)}
             className="block text-gray-600 hover:text-purple-600 font-medium text-base py-1"
           >
             Products
-          </a>
+          </Link>
           <Link
             to="/cart"
             onClick={() => setMobileMenuOpen(false)}
