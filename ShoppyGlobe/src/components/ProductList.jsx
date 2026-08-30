@@ -1,92 +1,78 @@
+import { useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
 import ProductItem from "./ProductItem";
 import { useFetchProducts } from "../hooks/useFetchProducts";
 import { selectSearchQuery, setSearchQuery } from "../redux/searchSlice";
 
+// Exact API endpoint from the problem statement — returns ALL products
+const PRODUCTS_URL = "https://dummyjson.com/products";
 
-// Mock product data for demonstration purposes when API fetch fails or is unavailable
-const MOCK_PRODUCTS = [
-  {
-    id: 83,
-    title: "Boys Blue & Black Check Shirt",
-    description: "Classic plaid check long-sleeve button-down shirt for boys. Soft, breathable cotton fabric for casual everyday wear.",
-    price: 24.99,
-    rating: 4.8,
-    category: "boys-garments",
-    thumbnail: "https://cdn.dummyjson.com/products/images/mens-shirts/Blue%20&%20Black%20Check%20Shirt/thumbnail.png"
-  },
-  {
-    id: 84,
-    title: "Boys Graphic Printed T-Shirt",
-    description: "Casual crewneck cotton t-shirt for boys featuring vibrant graphic artwork. Lightweight and comfortable for all-day play.",
-    price: 15.99,
-    rating: 4.6,
-    category: "boys-garments",
-    thumbnail: "https://cdn.dummyjson.com/products/images/mens-shirts/Gigabyte%20Aorus%20Men%20Tshirt/thumbnail.png"
-  },
-  {
-    id: 85,
-    title: "Boys Casual Plaid Flannel Shirt",
-    description: "Warm flannel plaid shirt with chest pockets and buttoned cuffs. Perfect for layering over t-shirts.",
-    price: 28.50,
-    rating: 4.7,
-    category: "boys-garments",
-    thumbnail: "https://cdn.dummyjson.com/products/images/mens-shirts/Man%20Plaid%20Shirt/thumbnail.png"
-  },
-  {
-    id: 86,
-    title: "Boys Short Sleeve Polo Shirt",
-    description: "Smart casual short sleeve polo shirt with ribbed collar and button placket. Great for school and events.",
-    price: 19.99,
-    rating: 4.5,
-    category: "boys-garments",
-    thumbnail: "https://cdn.dummyjson.com/products/images/mens-shirts/Man%20Short%20Sleeve%20Shirt/thumbnail.png"
-  },
-  {
-    id: 87,
-    title: "Boys Checkered Casual Shirt",
-    description: "Stylish red & navy checkered shirt for boys with turn-down collar and durable stitching.",
-    price: 22.99,
-    rating: 4.9,
-    category: "boys-garments",
-    thumbnail: "https://cdn.dummyjson.com/products/images/mens-shirts/Men%20Check%20Shirt/thumbnail.png"
-  }
-];
+// Skeleton card shown while products are loading (better perceived UX)
+function ProductSkeleton() {
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
+      <div className="w-full h-48 bg-gray-200" />
+      <div className="p-5 space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-gray-100 rounded w-full" />
+        <div className="h-3 bg-gray-100 rounded w-5/6" />
+        <div className="flex justify-between pt-2">
+          <div className="h-5 bg-gray-200 rounded w-16" />
+          <div className="h-5 bg-gray-200 rounded w-10" />
+        </div>
+        <div className="h-10 bg-gray-200 rounded-lg w-full mt-2" />
+      </div>
+    </div>
+  );
+}
 
 // product list component that displays a grid of products with search functionality
 export function ProductList({ products: propsProducts, onAddToCart }) {
   const dispatch = useDispatch();
   const searchQuery = useSelector(selectSearchQuery);
+  const [activeCategory, setActiveCategory] = useState("all");
 
-  const { data, loading: fetchLoading, error: fetchError } = useFetchProducts(
-    "https://dummyjson.com/products/category/mens-shirts"
+  // Skip the internal fetch when products are provided via props (e.g. from the Home page,
+  // which shares its already-fetched data) — passing null makes the hook idle
+  const { data, loading, error, refetch } = useFetchProducts(
+    propsProducts && propsProducts.length > 0 ? null : PRODUCTS_URL
   );
 
-  // Determine the products to display based on props, fetched data, or mock data
   const products =
-    propsProducts && propsProducts.length > 0
-      ? propsProducts
-      : data?.products || MOCK_PRODUCTS;
+    propsProducts && propsProducts.length > 0 ? propsProducts : data?.products || [];
 
-  const loading = propsProducts && propsProducts.length > 0 ? false : fetchLoading;
-  const error = propsProducts && propsProducts.length > 0 ? null : fetchError;
+  // Derive category list from the fetched products
+  const categories = useMemo(() => {
+    const unique = [...new Set(products.map((p) => p.category).filter(Boolean))];
+    return unique.sort();
+  }, [products]);
 
-  const filteredProducts = products.filter((product) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase().trim();
-    const titleMatch = product.title?.toLowerCase().includes(query);
-    const descMatch = product.description?.toLowerCase().includes(query);
-    const catMatch = product.category?.toLowerCase().includes(query);
-    return titleMatch || descMatch || catMatch;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      if (activeCategory !== "all" && product.category !== activeCategory) return false;
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase().trim();
+      const titleMatch = product.title?.toLowerCase().includes(query);
+      const descMatch = product.description?.toLowerCase().includes(query);
+      const catMatch = product.category?.toLowerCase().includes(query);
+      return titleMatch || descMatch || catMatch;
+    });
+  }, [products, searchQuery, activeCategory]);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full" id="products">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-          Boys Garments & Apparel
-        </h2>
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+            All Products
+          </h2>
+          {!loading && !error && (
+            <p className="text-sm text-gray-500 mt-1">
+              {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} available
+            </p>
+          )}
+        </div>
 
         {/* Search Input Bar (Redux state) */}
         <div className="w-full md:w-80 relative">
@@ -124,13 +110,40 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
       </div>
 
       {loading && (
-        <div className="text-center py-8 text-gray-500 font-medium animate-pulse">
-          Loading products...
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }, (_, i) => (
+            <ProductSkeleton key={i} />
+          ))}
         </div>
       )}
       {error && (
-        <div className="text-center mb-6 text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200 text-sm">
-          Notice: Showing sample products ({error})
+        <div className="text-center mb-6 text-rose-700 bg-rose-50 p-4 rounded-lg border border-rose-200 text-sm flex flex-col items-center gap-3">
+          <span>⚠️ Failed to load products: {error}</span>
+          <button
+            onClick={refetch}
+            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold transition-colors cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Category filter pills */}
+      {!loading && !error && categories.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          {["all", ...categories].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold capitalize transition-all cursor-pointer ${
+                activeCategory === cat
+                  ? "bg-purple-600 text-white shadow-sm"
+                  : "bg-white text-gray-600 border border-gray-200 hover:border-purple-400 hover:text-purple-600"
+              }`}
+            >
+              {cat === "all" ? "All" : cat.replace(/-/g, " ")}
+            </button>
+          ))}
         </div>
       )}
 
@@ -140,7 +153,7 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
         </div>
       )}
 
-      {!loading && filteredProducts.length === 0 ? (
+      {!loading && !error && filteredProducts.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
           <p className="text-gray-500 text-base font-medium mb-4">
             No products match your search query "{searchQuery}".
