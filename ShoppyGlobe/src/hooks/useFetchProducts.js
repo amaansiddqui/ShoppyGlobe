@@ -2,13 +2,20 @@ import { useState, useEffect } from "react";
 
 /**
  * Custom Hook: useFetchProducts
- * Fetches product list from the specified API endpoint when the component mounts.
- * Returns { data, loading, error }.
+ * A dynamic, reusable data-fetching hook. Pass ANY url and it fetches that
+ * endpoint when the component mounts (or when the url changes). No API call
+ * is hardcoded inside the hook itself.
+ *
+ * Returns { data, loading, error, refetch }.
  */
-export function useFetchProducts(url = "https://dummyjson.com/products/category/mens-shirts") {
+export function useFetchProducts(url) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refetchKey, setRefetchKey] = useState(0);
+
+  // Allows consumers to manually re-trigger the fetch (e.g. a Retry button)
+  const refetch = () => setRefetchKey((k) => k + 1);
 
   useEffect(() => {
     let isMounted = true;
@@ -36,14 +43,18 @@ export function useFetchProducts(url = "https://dummyjson.com/products/category/
       }
     }
 
+    if (!url) {
+      return;
+    }
+
     fetchData();
 
     return () => {
       isMounted = false;
     };
-  }, [url]);
+  }, [url, refetchKey]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 }
 
 export default useFetchProducts;

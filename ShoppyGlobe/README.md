@@ -71,6 +71,4 @@ ShoppyGlobe/
 └── package.json          # Node dependencies and scripts
 ```
 
-## GITHUB REPO 
-     
-    
+## GITHUB REPO : {``https://github.com/amaansiddqui/ShoppyGlobe/tree/main``};
