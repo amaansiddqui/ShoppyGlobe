@@ -1,13 +1,9 @@
-import mongoose from "mongoose";
 import Cart from "../models/Cart.js";
-import Product from "../models/Product.js";
+import { ApiError } from "../middleware/validate.js";
 
-function isValidId(id) {
-  return mongoose.isValidObjectId(id);
-}
-
-// get (or lazily create) the current user's cart, with products populated
-async function getPopulatedCart(userId = "guest") {
+// get (or lazily create) the current user's cart, with products populated.
+// userId comes from the JWT (req.user.id) — each user has their OWN cart.
+async function getPopulatedCart(userId) {
   let cart = await Cart.findOne({ userId }).populate("items.product");
   if (!cart) {
     cart = await Cart.create({ userId, items: [] });
@@ -22,22 +18,12 @@ async function getPopulatedCart(userId = "guest") {
  */
 export async function addToCart(req, res) {
   try {
+    // productId, quantity and product existence/stock already validated
+    // by validateCartItemBody middleware; validated product is on req.product
     const { productId, quantity = 1 } = req.body;
     const qty = parseInt(quantity);
-
-    if (!isValidId(productId)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
-    if (!Number.isInteger(qty) || qty < 1) {
-      return res.status(400).json({ message: "Quantity must be a positive integer" });
-    }
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    const userId = req.body.userId || "guest";
+    // Separate cart per user — the authenticated user's id from the JWT
+    const userId = req.user.id;
     let cart = await Cart.findOne({ userId });
     if (!cart) cart = await Cart.create({ userId, items: [] });
 
@@ -67,28 +53,18 @@ export async function addToCart(req, res) {
 export async function updateCartItem(req, res) {
   try {
     const { productId } = req.params;
-    const { quantity } = req.body;
-    const qty = parseInt(quantity);
-
-    if (!isValidId(productId)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
-    if (!Number.isInteger(qty) || qty < 1) {
-      return res.status(400).json({ message: "Quantity must be a positive integer" });
-    }
-
-    const userId = req.body.userId || "guest";
+    const userId = req.user.id;
     const cart = await Cart.findOne({ userId });
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      throw new ApiError(404, "Cart not found");
     }
 
     const item = cart.items.find((i) => i.product.toString() === productId);
     if (!item) {
-      return res.status(404).json({ message: "Product not found in cart" });
+      throw new ApiError(404, "Product not found in cart");
     }
 
-    item.quantity = qty;
+    item.quantity = parseInt(req.body.quantity, 10);
     await cart.save();
     const populated = await getPopulatedCart(userId);
 
@@ -105,22 +81,17 @@ export async function updateCartItem(req, res) {
 export async function removeCartItem(req, res) {
   try {
     const { productId } = req.params;
-
-    if (!isValidId(productId)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
-
-    const userId = req.query.userId || "guest";
+    const userId = req.user.id;
     const cart = await Cart.findOne({ userId });
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      throw new ApiError(404, "Cart not found");
     }
 
     const before = cart.items.length;
     cart.items = cart.items.filter((i) => i.product.toString() !== productId);
 
     if (cart.items.length === before) {
-      return res.status(404).json({ message: "Product not found in cart" });
+      throw new ApiError(404, "Product not found in cart");
     }
 
     await cart.save();
@@ -138,7 +109,8 @@ export async function removeCartItem(req, res) {
  */
 export async function getCart(req, res) {
   try {
-    const cart = await getPopulatedCart(req.query.userId || "guest");
+    // Each authenticated user only ever sees their own cart
+    const cart = await getPopulatedCart(req.user.id);
     res.json(cart);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch cart", error: err.message });
