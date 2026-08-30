@@ -1,10 +1,5 @@
-import mongoose from "mongoose";
 import Product from "../models/Product.js";
-
-// Helper: validate a MongoDB ObjectId
-function isValidId(id) {
-  return mongoose.isValidObjectId(id);
-}
+import { ApiError } from "../middleware/validate.js";
 
 /**
  * GET /api/products
@@ -47,13 +42,10 @@ export async function getProducts(req, res) {
 export async function getProductById(req, res) {
   try {
     const { id } = req.params;
-    if (!isValidId(id)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
 
     const product = await Product.findById(id).lean();
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      throw new ApiError(404, "Product not found");
     }
 
     res.json(product);
@@ -69,14 +61,7 @@ export async function getProductById(req, res) {
  */
 export async function createProduct(req, res) {
   try {
-    const { title, price } = req.body;
-    if (!title || typeof title !== "string" || !title.trim()) {
-      return res.status(400).json({ message: "Title is required" });
-    }
-    if (price === undefined || isNaN(Number(price)) || Number(price) < 0) {
-      return res.status(400).json({ message: "Price must be a non-negative number" });
-    }
-
+    // Body already validated by validateProductBody middleware
     const product = await Product.create(req.body);
     res.status(201).json({ message: "Product created", product });
   } catch (err) {
@@ -91,19 +76,16 @@ export async function createProduct(req, res) {
 export async function updateProduct(req, res) {
   try {
     const { id } = req.params;
-    if (!isValidId(id)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
+    // Body shape + id format already validated by middleware
 
     const updates = { ...req.body };
-    delete updates._id; // never allow overwriting the document id
 
     const product = await Product.findByIdAndUpdate(id, updates, {
       new: true,
       runValidators: true,
     });
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      throw new ApiError(404, "Product not found");
     }
 
     res.json({ message: "Product updated", product });
@@ -119,13 +101,10 @@ export async function updateProduct(req, res) {
 export async function deleteProduct(req, res) {
   try {
     const { id } = req.params;
-    if (!isValidId(id)) {
-      return res.status(400).json({ message: "Invalid product ID format" });
-    }
 
     const product = await Product.findByIdAndDelete(id);
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      throw new ApiError(404, "Product not found");
     }
 
     res.json({ message: "Product deleted", product });
