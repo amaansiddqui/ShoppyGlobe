@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useFetchProducts } from "../hooks/useFetchProducts";
 import ProductList from "./ProductList";
 
-const PRODUCTS_URL = "https://dummyjson.com/products";
+const PRODUCTS_URL = "/api/products?limit=100";
 const CATEGORIES_URL = "https://dummyjson.com/products/category-list";
 
 // Simple gradient hero slides (no external assets needed)
@@ -143,8 +143,8 @@ function DealsRow({ products }) {
       <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 snap-x">
         {deals.map((p) => (
           <Link
-            key={p.id}
-            to={`/product/${p.id}`}
+            key={p._id || p.id}
+            to={`/product/${p._id || p.id}`}
             className="snap-start shrink-0 w-40 sm:w-48 bg-white border border-gray-200 rounded-xl p-3 flex flex-col items-center gap-2 hover:shadow-lg transition-shadow no-underline group"
           >
             <div className="w-full h-28 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">

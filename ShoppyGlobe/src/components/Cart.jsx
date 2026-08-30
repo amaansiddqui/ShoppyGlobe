@@ -1,8 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
 import CartItem from "./CartItem";
-import { selectCartItems, clearCart } from "../redux/cartSlice";
+import { selectCartItems, clearCart, fetchCart } from "../redux/cartSlice";
+import { selectIsLoggedIn } from "../redux/authSlice";
+import { useEffect } from "react";
 
 export function Cart({
   cartItems: propCartItems,
@@ -11,7 +13,16 @@ export function Cart({
   onClearCart,
 }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const reduxCartItems = useSelector(selectCartItems);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+
+  // Load the protected backend cart when the user is logged in
+  useEffect(() => {
+    if (isLoggedIn) {
+      dispatch(fetchCart());
+    }
+  }, [isLoggedIn, dispatch]);
 
   const cartItems =
     propCartItems && propCartItems.length > 0 ? propCartItems : reduxCartItems;
@@ -28,6 +39,35 @@ export function Cart({
       onClearCart();
     }
   };
+  // PROTECTED: cart page requires login — the backend rejects unauthenticated cart access
+  if (!isLoggedIn) {
+    return (
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full" id="cart">
+        <div className="max-w-md mx-auto bg-white border border-gray-200 rounded-2xl p-10 text-center shadow-sm">
+          <div className="text-4xl mb-3">🔒</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Login required</h2>
+          <p className="text-gray-600 text-sm mb-6">
+            Your shopping cart is protected. Please log in to view and manage your cart.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => navigate("/login", { state: { from: "/cart" } })}
+              className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              Login / Register
+            </button>
+            <button
+              onClick={() => navigate("/products")}
+              className="px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              Browse Products
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
     // If the cart is empty, display a message and a link to browse products
   if (cartItems.length === 0) {
     return (
@@ -53,12 +93,12 @@ export function Cart({
           <p className="text-lg text-gray-600 mb-6 font-medium">
             Your cart is currently empty.
           </p>
-          <a
-            href="#products"
+          <button
+              onClick={() => navigate("/products")}
             className="inline-flex items-center justify-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-sm transition-colors decoration-none"
-          >
+            >
             Browse Products
-          </a>
+          </button>
         </div>
       </section>
     );
