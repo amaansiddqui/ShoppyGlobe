@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../redux/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart, addCartItem } from "../redux/cartSlice";
+import { selectIsLoggedIn } from "../redux/authSlice";
+
+// API base: uses your own Express + MongoDB backend (proxied by Vite in dev)
+const API_BASE = "/api";
 
 export function ProductDetail({ onAddToCart }) {
   const { id } = useParams();
@@ -12,6 +16,7 @@ export function ProductDetail({ onAddToCart }) {
   const [error, setError] = useState(null);
   const [added, setAdded] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   useEffect(() => {
     let isMounted = true;
@@ -19,11 +24,19 @@ export function ProductDetail({ onAddToCart }) {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`https://dummyjson.com/products/${id}`);
+        // Backend validates the ObjectId format before even hitting MongoDB
+        if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+          throw new Error(`Invalid product ID: "${id}"`);
+        }
+        const response = await fetch(`${API_BASE}/products/${id}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch product details (Status: ${response.status})`);
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message || `Failed to fetch product details (Status: ${response.status})`);
         }
         const data = await response.json();
+        if (data.message) {
+          throw new Error(data.message);
+        }
         if (isMounted) {
           setProduct(data);
           setSelectedImage(data.thumbnail || (data.images && data.images[0]) || "");
@@ -41,6 +54,8 @@ export function ProductDetail({ onAddToCart }) {
 
     if (id) {
       fetchProductDetail();
+    } else if (isMounted) {
+      setLoading(false);
     }
 
     return () => {
@@ -50,7 +65,11 @@ export function ProductDetail({ onAddToCart }) {
 
   const handleAddToCart = () => {
     if (product) {
-      dispatch(addToCart(product));
+      if (isLoggedIn) {
+        dispatch(addCartItem({ productId: String(product._id || product.id), quantity: 1 }));
+      } else {
+        dispatch(addToCart(product));
+      }
       if (onAddToCart) {
         onAddToCart(product);
       }
