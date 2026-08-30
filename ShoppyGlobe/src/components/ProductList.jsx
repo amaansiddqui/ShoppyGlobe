@@ -5,8 +5,9 @@ import ProductItem from "./ProductItem";
 import { useFetchProducts } from "../hooks/useFetchProducts";
 import { selectSearchQuery, setSearchQuery } from "../redux/searchSlice";
 
-// Exact API endpoint from the problem statement — returns ALL products
-const PRODUCTS_URL = "https://dummyjson.com/products";
+// Exact API endpoint from the problem statement — returns ALL products.
+// Now served by YOUR Express + MongoDB backend (proxied by Vite in dev).
+const PRODUCTS_URL = "/api/products?limit=100";
 
 // Skeleton card shown while products are loading (better perceived UX)
 function ProductSkeleton() {
@@ -39,8 +40,7 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
     propsProducts && propsProducts.length > 0 ? null : PRODUCTS_URL
   );
 
-  const products =
-    propsProducts && propsProducts.length > 0 ? propsProducts : data?.products || [];
+  const products = data?.products || data || [];
 
   // Derive category list from the fetched products
   const categories = useMemo(() => {
@@ -169,9 +169,10 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductItem
-              key={product.id}
+            key={product.id || product._id}
               product={product}
               onAddToCart={onAddToCart}
+              mongoId={product._id}
             />
           ))}
         </div>

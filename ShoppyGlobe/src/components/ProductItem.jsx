@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../redux/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart, addCartItem } from "../redux/cartSlice";
+import { selectIsLoggedIn } from "../redux/authSlice";
 
-export function ProductItem({ product, onAddToCart }) {
+export function ProductItem({ product, onAddToCart, mongoId }) {
   const [added, setAdded] = useState(false);
   const dispatch = useDispatch();
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   if (!product) return null;
     // Destructure product properties with default values
@@ -19,9 +21,13 @@ export function ProductItem({ product, onAddToCart }) {
     rating = 0,
   } = product;
 
-  // Handle adding the product to the cart and updating the added state for feedback
+  // Handle adding the product to the cart — synced to the protected backend when logged in
   const handleAddToCart = () => {
-    dispatch(addToCart(product));
+    if (isLoggedIn) {
+      dispatch(addCartItem({ productId: String(product._id || product.id), quantity: 1 }));
+    } else {
+      dispatch(addToCart(product));
+    }
     if (onAddToCart) {
       onAddToCart(product);
     }
@@ -36,7 +42,7 @@ export function ProductItem({ product, onAddToCart }) {
       className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
       id={`product-${id}`}
     >
-      <Link to={`/product/${id}`} className="block w-full h-48 bg-gray-50 overflow-hidden">
+      <Link to={`/product/${mongoId || id}`} className="block w-full h-48 bg-gray-50 overflow-hidden">
         {thumbnail ? (
           <img
             src={thumbnail}
@@ -50,7 +56,7 @@ export function ProductItem({ product, onAddToCart }) {
         )}
       </Link>
       <div className="p-5 flex flex-col flex-grow text-left">
-        <Link to={`/product/${id}`} className="no-underline hover:text-purple-600 transition-colors">
+        <Link to={`/product/${mongoId || id}`} className="no-underline hover:text-purple-600 transition-colors">
           <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">{title}</h3>
         </Link>
         {description && (
@@ -95,6 +101,7 @@ ProductItem.propTypes = {
     rating: PropTypes.number,
   }),
   onAddToCart: PropTypes.func,
+  mongoId: PropTypes.string,
 };
 
 export default ProductItem;

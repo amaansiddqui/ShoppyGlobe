@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 
 // Lazy loading all components for code splitting
 const Header = lazy(() => import("./components/Header"));
+const Login = lazy(() => import("./components/Login"));
 const Home = lazy(() => import("./components/Home"));
 const ProductList = lazy(() => import("./components/ProductList"));
 const ProductDetail = lazy(() => import("./components/ProductDetail"));
@@ -77,6 +78,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <ProductDetail />
+          </Suspense>
+        ),
+      },
+      {
+        path: "login",
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Login />
           </Suspense>
         ),
       },
