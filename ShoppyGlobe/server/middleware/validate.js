@@ -15,7 +15,6 @@ export class ApiError extends Error {
 /**
  * Wraps async route handlers so thrown errors / rejected promises
  * are forwarded to Express's global error handler automatically.
- * No more missing try/catch on any route.
  */
 export const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
