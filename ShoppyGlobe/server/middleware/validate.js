@@ -103,8 +103,8 @@ export async function validateCartItemBody(req, res, next) {
   if (product.stock !== undefined && product.stock < qty) {
     return next(new ApiError(409, `Insufficient stock: only ${product.stock} left`));
   }
-
-  req.product = product; // pass along for the controller
+// pass along for the controller
+  req.product = product; 
   next();
 }
 
