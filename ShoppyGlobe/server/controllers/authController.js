@@ -15,7 +15,6 @@ function signToken(user) {
 
 /**
  * POST /api/register
- * Body: { username, email, password }
  */
 export const register = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body || {};
@@ -43,7 +42,6 @@ export const register = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/login
- * Body: { email, password }  (username also accepted)
  */
 export const login = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body || {};
@@ -67,8 +65,6 @@ export const login = asyncHandler(async (req, res) => {
 
 /**
  * Authorization middleware — protects routes.
- * Expects header: Authorization: Bearer <token>
- * On success attaches the authenticated user to req.user.
  */
 export const requireAuth = asyncHandler(async (req, _res, next) => {
   const header = req.headers.authorization || "";
