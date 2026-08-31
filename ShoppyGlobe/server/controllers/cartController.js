@@ -2,12 +2,20 @@ import Cart from "../models/Cart.js";
 import { ApiError } from "../middleware/validate.js";
 
 // get (or lazily create) the current user's cart, with products populated.
-// userId comes from the JWT (req.user.id) — each user has their OWN cart.
+// userId comes from the JWT (req.user.id) — each user has their own cart.
+// Automatically filters out and cleans up any orphaned products that no longer exist in DB.
 async function getPopulatedCart(userId) {
   let cart = await Cart.findOne({ userId }).populate("items.product");
   if (!cart) {
     cart = await Cart.create({ userId, items: [] });
     cart = await Cart.findById(cart._id).populate("items.product");
+  } else {
+    // If any product failed to populate (e.g. was deleted or re-seeded), clean it up from cart
+    const validItems = cart.items.filter((item) => item.product !== null && item.product !== undefined);
+    if (validItems.length !== cart.items.length) {
+      cart.items = validItems;
+      await cart.save();
+    }
   }
   return cart;
 }
@@ -22,6 +30,7 @@ export async function addToCart(req, res) {
     // by validateCartItemBody middleware; validated product is on req.product
     const { productId, quantity = 1 } = req.body;
     const qty = parseInt(quantity);
+
     // Separate cart per user — the authenticated user's id from the JWT
     const userId = req.user.id;
     let cart = await Cart.findOne({ userId });
@@ -102,6 +111,26 @@ export async function removeCartItem(req, res) {
     res.status(500).json({ message: "Failed to remove from cart", error: err.message });
   }
 }
+
+/**
+ * DELETE /api/cart
+ * Clear the current user's entire cart in MongoDB.
+ */
+// export async function clearUserCart(req, res) {
+//   try {
+//     const userId = req.user.id;
+//     let cart = await Cart.findOne({ userId });
+//     if (!cart) {
+//       cart = await Cart.create({ userId, items: [] });
+//     } else {
+//       cart.items = [];
+//       await cart.save();
+//     }
+//     res.json({ message: "Cart cleared", cart: { userId, items: [], totalPrice: 0 } });
+//   } catch (err) {
+//     res.status(500).json({ message: "Failed to clear cart", error: err.message });
+//   }
+// }
 
 /**
  * GET /api/cart (bonus)
