@@ -4,7 +4,6 @@ import { ApiError } from "../middleware/validate.js";
 /**
  * GET /api/products
  * Fetch a list of products from MongoDB.
- * Supports ?search= &category= &page= &limit= for pagination and filtering.
  */
 export async function getProducts(req, res) {
   try {
@@ -12,6 +11,7 @@ export async function getProducts(req, res) {
     const limit = Math.min(parseInt(req.query.limit) || 20, 100);
     const skip = (page - 1) * limit;
 
+    // filter by Category
     const filter = {};
     if (req.query.category) filter.category = req.query.category;
     if (req.query.search) {
@@ -57,11 +57,9 @@ export async function getProductById(req, res) {
 /**
  * POST /api/products
  * Create a new product in MongoDB.
- * Body: { title, price, description?, stock?, ... }
  */
 export async function createProduct(req, res) {
   try {
-    // Body already validated by validateProductBody middleware
     const product = await Product.create(req.body);
     res.status(201).json({ message: "Product created", product });
   } catch (err) {
@@ -76,7 +74,6 @@ export async function createProduct(req, res) {
 export async function updateProduct(req, res) {
   try {
     const { id } = req.params;
-    // Body shape + id format already validated by middleware
 
     const updates = { ...req.body };
 
@@ -114,7 +111,7 @@ export async function deleteProduct(req, res) {
 }
 
 /**
- * GET /api/products/category-list (bonus)
+ * GET /api/products/category-list 
  * Distinct product categories from MongoDB.
  */
 export async function getCategoryList(_req, res) {
