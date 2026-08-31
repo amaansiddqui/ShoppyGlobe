@@ -57,13 +57,7 @@ JWT_SECRET=your_jwt_secret_key_here
 JWT_EXPIRES_IN=1d
 ```
 
-### 4. Seed Product Data to MongoDB
-Seed the MongoDB database with initial product catalog data:
-```bash
-npm run seed
-```
-
-### 5. Start the Application
+### 4. Start the Application
 
 **Start the Express + MongoDB Backend:**
 ```bash
