@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
-import { selectCartItems, clearCart } from "../redux/cartSlice";
+import { selectCartItems, clearCart, clearCartApi } from "../redux/cartSlice";
+import { selectIsLoggedIn } from "../redux/authSlice";
 
 export function Checkout({ cartItems: propCartItems, onClearCart }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const reduxCartItems = useSelector(selectCartItems);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
   const cartItems =
     propCartItems && propCartItems.length > 0 ? propCartItems : reduxCartItems;
@@ -40,7 +42,11 @@ export function Checkout({ cartItems: propCartItems, onClearCart }) {
 
     setTimeout(() => {
       setOrderPlaced(true);
-      dispatch(clearCart());
+      if (isLoggedIn) {
+        dispatch(clearCartApi());
+      } else {
+        dispatch(clearCart());
+      }
       if (onClearCart) {
         onClearCart();
       }

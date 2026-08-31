@@ -19,20 +19,21 @@ async function apiCall(url, options = {}) {
   return data;
 }
 
-// Backend cart docs: { userId, items: [{ product: {...}, quantity }], totalPrice }
 // Normalize to the shape the UI components already use (id, title, price, thumbnail, quantity)
 function normalizeCart(data) {
-  if (!data) return [];
-  return (data.items || []).map((it) => {
-    const p = typeof it.product === "object" ? it.product : null;
-    return {
-      id: p ? String(p._id) : String(it.product),
-      title: p?.title || "Item",
-      price: p?.price ?? 0,
-      thumbnail: p?.thumbnail || "",
-      quantity: it.quantity,
-    };
-  });
+  if (!data || !Array.isArray(data.items)) return [];
+  return data.items
+    .filter((it) => it && it.product && typeof it.product === "object" && it.product._id)
+    .map((it) => {
+      const p = it.product;
+      return {
+        id: String(p._id),
+        title: p.title || "Item",
+        price: p.price ?? 0,
+        thumbnail: p.thumbnail || "",
+        quantity: it.quantity || 1,
+      };
+    });
 }
 
 /** GET /api/cart */
@@ -45,7 +46,7 @@ export const fetchCart = createAsyncThunk("cart/fetch", async (_, { rejectWithVa
   }
 });
 
-/** POST /api/cart { productId, quantity } */
+/** POST /api/cart */
 export const addCartItem = createAsyncThunk("cart/add", async ({ productId, quantity = 1 }, { rejectWithValue }) => {
   try {
     const data = await apiCall("/api/cart", {
@@ -58,7 +59,7 @@ export const addCartItem = createAsyncThunk("cart/add", async ({ productId, quan
   }
 });
 
-/** PUT /api/cart/:productId { quantity } */
+/** PUT /api/cart/:productId */
 export const updateCartItemApi = createAsyncThunk(
   "cart/updateApi",
   async ({ productId, quantity }, { rejectWithValue }) => {
@@ -84,7 +85,41 @@ export const removeCartItemApi = createAsyncThunk("cart/removeApi", async (produ
   }
 });
 
-const initialState = { items: [], loading: false, error: null };
+/** DELETE /api/cart */
+export const clearCartApi = createAsyncThunk("cart/clearApi", async (_, { rejectWithValue }) => {
+  try {
+    await apiCall("/api/cart", { method: "DELETE" });
+    return [];
+  } catch (err) {
+    return rejectWithValue(err.message);
+  }
+});
+
+const getSavedGuestCart = () => {
+  try {
+    const raw = localStorage.getItem("sg_guest_cart");
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    // Sanitize items so no undefined/invalid products exist
+    return parsed.filter((it) => it && it.id && it.id !== "undefined" && it.id !== "null" && it.title);
+  } catch {
+    return [];
+  }
+};
+
+const saveGuestCart = (items) => {
+  try {
+    localStorage.setItem("sg_guest_cart", JSON.stringify(items));
+  } catch {
+    // Silently ignore localStorage errors
+  }
+};
+
+const initialState = {
+  items: localStorage.getItem("sg_token") ? [] : getSavedGuestCart(),
+  loading: false,
+  error: null,
+};
 
 const cartSlice = createSlice({
   name: "cart",
@@ -93,19 +128,36 @@ const cartSlice = createSlice({
     // Local add — used when NOT logged in (guest mode)
     addToCart: (state, action) => {
       const product = action.payload;
-      const key = product._id !== undefined ? String(product._id) : product.id !== undefined ? String(product.id) : undefined;
-      if (!product || key === undefined) return;
+      if (!product) return;
+      const key = product._id !== undefined && product._id !== null
+        ? String(product._id)
+        : product.id !== undefined && product.id !== null
+        ? String(product.id)
+        : undefined;
+      if (!key || key === "undefined" || key === "null") return;
       const existing = state.items.find((i) => String(i.id) === key);
       if (existing) {
         existing.quantity += product.quantity || 1;
       } else {
-        state.items.push({ ...product, id: key, quantity: product.quantity || 1 });
+        state.items.push({
+          id: key,
+          title: product.title || "Item",
+          price: product.price ?? 0,
+          thumbnail: product.thumbnail || "",
+          quantity: product.quantity || 1,
+        });
       }
       state.error = null;
+      if (!localStorage.getItem("sg_token")) {
+        saveGuestCart(state.items);
+      }
     },
     removeFromCart: (state, action) => {
       const id = typeof action.payload === "object" ? String(action.payload._id ?? action.payload.id ?? action.payload) : String(action.payload);
       state.items = state.items.filter((i) => String(i.id) !== id);
+      if (!localStorage.getItem("sg_token")) {
+        saveGuestCart(state.items);
+      }
     },
     updateQuantity: (state, action) => {
       const { id, quantity } = action.payload;
@@ -116,10 +168,14 @@ const cartSlice = createSlice({
         const item = state.items.find((i) => String(i.id) === key);
         if (item) item.quantity = quantity;
       }
+      if (!localStorage.getItem("sg_token")) {
+        saveGuestCart(state.items);
+      }
     },
     clearCart: (state) => {
       state.items = [];
       state.error = null;
+      saveGuestCart([]);
     },
   },
   extraReducers: (builder) => {
@@ -153,10 +209,24 @@ const cartSlice = createSlice({
       .addCase(removeCartItemApi.rejected, (state, action) => {
         state.error = action.payload;
       })
-      // Logging out clears the local cart (backend cart is per-user)
+      .addCase(clearCartApi.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(clearCartApi.fulfilled, (state) => {
+        state.items = [];
+        state.loading = false;
+        state.error = null;
+        saveGuestCart([]);
+      })
+      .addCase(clearCartApi.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Logging out clears the local cart
       .addCase(authLogout, (state) => {
         state.items = [];
         state.error = null;
+        saveGuestCart([]);
       });
   },
 });

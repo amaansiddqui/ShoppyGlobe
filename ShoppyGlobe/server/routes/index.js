@@ -1,18 +1,15 @@
 import { Router } from "express";
 
 const router = Router();
-import {
-  getProducts,
-  getProductById,
-  getCategoryList,
-  createProduct,
-  updateProduct,
+import {getProducts,getProductById,getCategoryList,createProduct,
+updateProduct,
   deleteProduct,
 } from "../controllers/productController.js";
 import {
   addToCart,
   updateCartItem,
   removeCartItem,
+  clearUserCart,
   getCart,
 } from "../controllers/cartController.js";
 import { register, login, requireAuth } from "../controllers/authController.js";
@@ -52,6 +49,7 @@ router.delete(
 
 // Cart routes — PROTECTED: only logged-in users with a valid JWT can access
 router.get("/cart", requireAuth, asyncHandler(getCart));                            // GET /api/cart — view cart
+router.delete("/cart", requireAuth, asyncHandler(clearUserCart));                   // DELETE /api/cart — clear cart
 router.post("/cart", requireAuth, validateCartItemBody, asyncHandler(addToCart));  // POST /api/cart — add product to cart
 router.put(
   "/cart/:productId",

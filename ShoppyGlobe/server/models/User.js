@@ -36,7 +36,7 @@ userSchema.pre("save", async function () {
   }
 });
 
-// Instance helper: compare a plaintext password against the stored hash
+// compare a plaintext password against the stored hash
 userSchema.methods.comparePassword = function (candidate) {
   return bcrypt.compare(candidate, this.password);
 };

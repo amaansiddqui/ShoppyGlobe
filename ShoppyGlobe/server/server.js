@@ -17,7 +17,7 @@ app.use("/api", routes);
 
 // Health check
 app.get("/", (_req, res) => {
-  res.json({ message: "ShoppyGlobe API is running 🚀" });
+  res.json({ message: "ShoppyGlobe API is running" });
 });
 
 // 404 handler for unmatched routes

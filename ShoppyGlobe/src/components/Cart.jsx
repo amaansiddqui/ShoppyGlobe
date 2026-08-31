@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { useSelector, useDispatch } from "react-redux";
 import CartItem from "./CartItem";
-import { selectCartItems, clearCart, fetchCart } from "../redux/cartSlice";
+import { selectCartItems, fetchCart } from "../redux/cartSlice";
 import { selectIsLoggedIn } from "../redux/authSlice";
 import { useEffect } from "react";
 
@@ -10,7 +10,7 @@ export function Cart({
   cartItems: propCartItems,
   onUpdateQuantity,
   onRemoveItem,
-  onClearCart,
+  
 }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,12 +33,6 @@ export function Cart({
     0
   );
 
-  const handleClearCart = () => {
-    dispatch(clearCart());
-    if (onClearCart) {
-      onClearCart();
-    }
-  };
   // PROTECTED: cart page requires login — the backend rejects unauthenticated cart access
   if (!isLoggedIn) {
     return (
@@ -143,14 +137,13 @@ export function Cart({
           >
             Proceed to Checkout
           </Link>
-          {(onClearCart || reduxCartItems.length > 0) && (
-            <button
-              className="w-full mt-3 py-2 px-4 bg-transparent hover:bg-rose-50 text-rose-600 border border-rose-200 font-semibold rounded-lg transition-colors cursor-pointer"
-              onClick={handleClearCart}
-            >
-              Clear Cart
-            </button>
-          )}
+          {/* <button
+            type="button"
+            className="w-full mt-3 py-2 px-4 bg-transparent hover:bg-rose-50 text-rose-600 border border-rose-200 font-semibold rounded-lg transition-colors cursor-pointer"
+            onClick={handleClearCart}
+          >
+            Clear Cart
+          </button> */}
         </div>
       </div>
     </section>

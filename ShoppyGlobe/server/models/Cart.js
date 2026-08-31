@@ -15,7 +15,7 @@ const cartItemSchema = new mongoose.Schema(
 
 const cartSchema = new mongoose.Schema(
   {
-    // Simple single-user cart for this assignment; userId allows multi-user carts later
+    // Simple single-user cart for this assignment, userId allows multi-user carts later
     userId: { type: String, default: "guest", index: true },
     items: [cartItemSchema],
   },

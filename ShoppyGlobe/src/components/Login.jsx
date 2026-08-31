@@ -12,7 +12,7 @@ export function Login() {
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const { loading, error, user } = useSelector((state) => state.auth);
 
-  const [mode, setMode] = useState("login"); // "login" | "register"
+  const [mode, setMode] = useState("login"); 
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [fieldErrors, setFieldErrors] = useState({});
 

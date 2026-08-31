@@ -1,5 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { selectIsLoggedIn } from "./redux/authSlice";
+import { fetchCart } from "./redux/cartSlice";
 
 // Lazy loading all components for code splitting
 const Header = lazy(() => import("./components/Header"));
@@ -25,6 +28,15 @@ function LoadingFallback() {
 
 // Root layout component that includes the header and an outlet for nested routes
 function RootLayout() {
+  const dispatch = useDispatch();
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      dispatch(fetchCart());
+    }
+  }, [isLoggedIn, dispatch]);
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col font-sans">
       <Suspense fallback={<div className="h-16 bg-white border-b border-gray-200" />}>
