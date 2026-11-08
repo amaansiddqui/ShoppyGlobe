@@ -52,7 +52,7 @@ npm install
 Create a `.env` file in the `ShoppyGlobe` root directory:
 ```env
 MONGO_URI=mongodb://127.0.0.1:27017/shoppyglobe
-PORT=5000
+PORT=5100
 JWT_SECRET=your_jwt_secret_key_here
 JWT_EXPIRES_IN=1d
 ```
@@ -63,7 +63,7 @@ JWT_EXPIRES_IN=1d
 ```bash
 npm run server
 ```
-*The backend server will run on `http://localhost:5000`.*
+*The backend server will run on `http://localhost:5100`.*
 
 **In a separate terminal, start the Vite Frontend Dev Server:**
 ```bash
