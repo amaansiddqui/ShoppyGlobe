@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { logout as authLogout } from "./authSlice";
+import { apiUrl } from "../api";
 
 // Cart slice synced with the PROTECTED backend cart API.
 // Every mutation also calls /api/cart with the JWT from localStorage.
@@ -10,7 +11,7 @@ function authHeaders() {
 }
 
 async function apiCall(url, options = {}) {
-  const res = await fetch(url, {
+  const res = await fetch(apiUrl(url), {
     ...options,
     headers: { "Content-Type": "application/json", ...authHeaders(), ...(options.headers || {}) },
   });

@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { apiUrl } from "../api";
 
 // Stored JWT + user info. Token persisted in localStorage so the
 // session survives page reloads.
@@ -30,7 +31,7 @@ export const registerUser = createAsyncThunk(
   "auth/register",
   async (body, { rejectWithValue }) => {
     try {
-      const res = await fetch("/api/register", {
+      const res = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -52,7 +53,7 @@ export const loginUser = createAsyncThunk(
   "auth/login",
   async (body, { rejectWithValue }) => {
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

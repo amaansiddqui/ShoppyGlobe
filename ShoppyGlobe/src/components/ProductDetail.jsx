@@ -4,9 +4,7 @@ import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, addCartItem } from "../redux/cartSlice";
 import { selectIsLoggedIn } from "../redux/authSlice";
-
-// API base: uses your own Express + MongoDB backend (proxied by Vite in dev)
-const API_BASE = "/api";
+import { apiUrl } from "../api";
 
 export function ProductDetail({ onAddToCart }) {
   const { id } = useParams();
@@ -28,7 +26,7 @@ export function ProductDetail({ onAddToCart }) {
         if (!/^[0-9a-fA-F]{24}$/.test(id)) {
           throw new Error(`Invalid product ID: "${id}"`);
         }
-        const response = await fetch(`${API_BASE}/products/${id}`);
+        const response = await fetch(apiUrl(`/api/products/${id}`));
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
           throw new Error(payload.message || `Failed to fetch product details (Status: ${response.status})`);

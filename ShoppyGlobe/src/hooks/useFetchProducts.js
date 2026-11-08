@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiUrl } from "../api";
 
 /**
  * Custom Hook: useFetchProducts
@@ -24,7 +25,7 @@ export function useFetchProducts(url) {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(url);
+        const response = await fetch(apiUrl(url));
         if (!response.ok) {
           throw new Error(`Failed to fetch products: ${response.statusText}`);
         }
