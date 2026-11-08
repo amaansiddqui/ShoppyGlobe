@@ -8,6 +8,7 @@ import { selectSearchQuery, setSearchQuery } from "../redux/searchSlice";
 // Exact API endpoint from the problem statement — returns ALL products.
 // Now served by YOUR Express + MongoDB backend (proxied by Vite in dev).
 const PRODUCTS_URL = "/api/products?limit=100";
+const EMPTY_PRODUCTS = [];
 
 // Skeleton card shown while products are loading (better perceived UX)
 function ProductSkeleton() {
@@ -29,18 +30,37 @@ function ProductSkeleton() {
 }
 
 // product list component that displays a grid of products with search functionality
-export function ProductList({ products: propsProducts, onAddToCart }) {
+export function ProductList({
+  products: propsProducts,
+  loading: propsLoading,
+  error: propsError,
+  onRetry,
+  selectedCategory,
+  onCategoryChange,
+  onAddToCart,
+}) {
   const dispatch = useDispatch();
   const searchQuery = useSelector(selectSearchQuery);
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [internalCategory, setInternalCategory] = useState("all");
+  const hasProvidedProducts = propsProducts !== undefined;
 
-  // Skip the internal fetch when products are provided via props (e.g. from the Home page,
-  // which shares its already-fetched data) — passing null makes the hook idle
-  const { data, loading, error, refetch } = useFetchProducts(
-    propsProducts && propsProducts.length > 0 ? null : PRODUCTS_URL
+  const {
+    data,
+    loading: fetchedLoading,
+    error: fetchedError,
+    refetch,
+  } = useFetchProducts(
+    hasProvidedProducts ? null : PRODUCTS_URL
   );
 
-  const products = data?.products || data || [];
+  const products = hasProvidedProducts
+    ? propsProducts
+    : data?.products || data || EMPTY_PRODUCTS;
+  const loading = hasProvidedProducts ? Boolean(propsLoading) : fetchedLoading;
+  const error = hasProvidedProducts ? propsError : fetchedError;
+  const activeCategory = selectedCategory ?? internalCategory;
+  const setActiveCategory = onCategoryChange ?? setInternalCategory;
+  const retry = onRetry ?? refetch;
 
   // Derive category list from the fetched products
   const categories = useMemo(() => {
@@ -64,8 +84,8 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full" id="products">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-            All Products
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight capitalize">
+            {activeCategory === "all" ? "All Products" : activeCategory.replace(/-/g, " ")}
           </h2>
           {!loading && !error && (
             <p className="text-sm text-gray-500 mt-1">
@@ -120,7 +140,7 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
         <div className="text-center mb-6 text-rose-700 bg-rose-50 p-4 rounded-lg border border-rose-200 text-sm flex flex-col items-center gap-3">
           <span>⚠️ Failed to load products: {error}</span>
           <button
-            onClick={refetch}
+          onClick={retry}
             className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-semibold transition-colors cursor-pointer"
           >
             Retry
@@ -156,16 +176,21 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
       {!loading && !error && filteredProducts.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200">
           <p className="text-gray-500 text-base font-medium mb-4">
-            No products match your search query "{searchQuery}".
+            {searchQuery
+              ? `No products match your search query "${searchQuery}".`
+              : "No products are available in this category."}
           </p>
           <button
-            onClick={() => dispatch(setSearchQuery(""))}
+            onClick={() => {
+              dispatch(setSearchQuery(""));
+              setActiveCategory("all");
+            }}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors"
           >
-            Clear Search
+            Show all products
           </button>
         </div>
-      ) : (
+      ) : !loading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <ProductItem
@@ -185,6 +210,11 @@ export function ProductList({ products: propsProducts, onAddToCart }) {
 
 ProductList.propTypes = {
   products: PropTypes.arrayOf(PropTypes.object),
+  loading: PropTypes.bool,
+  error: PropTypes.string,
+  onRetry: PropTypes.func,
+  selectedCategory: PropTypes.string,
+  onCategoryChange: PropTypes.func,
   onAddToCart: PropTypes.func,
 };
 

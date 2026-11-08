@@ -1,8 +1,74 @@
 @import "tailwindcss";
 
+@theme {
+  --color-gray-50: #fffaf3;
+  --color-gray-100: #f8f1e7;
+  --color-gray-200: #eee3d5;
+  --color-gray-300: #dccbb8;
+  --color-gray-400: #b69f89;
+  --color-gray-500: #8b7563;
+  --color-gray-600: #6f5c4d;
+  --color-gray-700: #564638;
+  --color-gray-800: #382e25;
+  --color-gray-900: #211a15;
+  --color-gray-950: #120e0b;
+
+  --color-purple-50: #fff4e8;
+  --color-purple-100: #ffe6cb;
+  --color-purple-200: #ffd0a1;
+  --color-purple-300: #ffb36b;
+  --color-purple-400: #ff9140;
+  --color-purple-500: #f77725;
+  --color-purple-600: #e85d14;
+  --color-purple-700: #c9490e;
+  --color-purple-800: #a53b10;
+  --color-purple-900: #853311;
+  --color-purple-950: #4a1b08;
+
+  --color-pink-50: #fff5f0;
+  --color-pink-100: #ffe6d9;
+  --color-pink-200: #ffc9ad;
+  --color-pink-300: #ffa47a;
+  --color-pink-400: #fa8052;
+  --color-pink-500: #ef6335;
+  --color-pink-600: #d94b26;
+  --color-pink-700: #b73b20;
+  --color-pink-800: #93331f;
+  --color-pink-900: #782f20;
+  --color-pink-950: #40160e;
+
+  --animate-badge-pop: badge-pop 0.3s ease-out;
+  --animate-drawer-in: drawer-in 0.25s ease-out;
+  --animate-nav-underline: nav-underline 0.25s ease-out;
+
+  @keyframes badge-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+  @keyframes drawer-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes nav-underline {
+    from { opacity: 0; transform: translateX(-6px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+}
+
+/* @keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+} */
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: #fffaf3;
+  color: #211a15;
+}
+
+::selection {
+  background-color: #ffd0a1;
+  color: #4a1b08;
 }
